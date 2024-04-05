@@ -1,28 +1,26 @@
-// import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
-
-// @Module({
-//   imports: [],
-//   controllers: [AppController],
-//   providers: [AppService],
-// })
-// export class AppModule {}
-
 // app.module.ts
-
-import { Module, ValidationPipe } from '@nestjs/common';
+import { Module, ValidationPipe, MiddlewareConsumer } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_PIPE } from '@nestjs/core';
+import { APP_PIPE, APP_GUARD } from '@nestjs/core';
 import { UsersModule } from './users/users.module';
 import {User} from './users/user.entity';
+import { AuthModule } from './auth/auth.module';
+// import { AdminGuard } from './admin/admin.guard';
+import { BlogModule } from './blogs/blogs.module';
+import { Blog } from './blogs/blog.entity';
+import { CommentsModule } from './comments/comments.module';
+import { Comment } from './comments/comment.entity';
+
+const cookieSession = require('cookie-session');
 
 @Module({
   imports: [
-    UsersModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }), 
     TypeOrmModule.forRoot({
         type: 'postgres',
         host: 'localhost', // Update with your MySQL host
@@ -30,23 +28,13 @@ import {User} from './users/user.entity';
         username: 'postgres', // Update with your MySQL username
         password: '', // Update with your MySQL password
         database: 'blop_api', // Update with your MySQL database name
-        entities: [User],
+        entities:{ User,Blog, Comment },
         synchronize:true
-    })
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule, UsersModule],
-    //   inject: [ConfigService],
-    //   useFactory: async (configService: ConfigService) => ({
-    //     type: 'mysql',
-    //     host: configService.get<string>('DB_HOST', 'localhost'), // Update with your MySQL host
-    //     port: configService.get<number>('DB_PORT', 3306), // Update with your MySQL port
-    //     username: configService.get<string>('DB_USER', 'root'), // Update with your MySQL username
-    //     password: configService.get<string>('DB_PASSWORD', ''), // Update with your MySQL password
-    //     database: configService.get<string>('DB_NAME', 'blop_API'), // Update with your MySQL database name
-    //     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-    //     synchronize: true, // Auto-sync database schema (for development only)
-    //   }),
-    // }),
+    }),
+    UsersModule,
+    AuthModule,
+    BlogModule,
+    CommentsModule
   ],
   
   controllers: [AppController],
@@ -58,6 +46,22 @@ import {User} from './users/user.entity';
         whitelist: true,
       }),
     },
+    // {
+    //       provide: APP_GUARD,
+    //       useClass: AdminGuard,
+    // }
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private configService: ConfigService) {}
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(
+        cookieSession({
+          keys: [this.configService.get('COOKIE_KEY')],
+        }),
+      )
+      .forRoutes('*');
+  }
+}

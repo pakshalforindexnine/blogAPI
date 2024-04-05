@@ -1,16 +1,21 @@
-// // src/auth/auth.controller.ts
+// auth/auth.controller.ts
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
-// import { Controller, Post, Request, UseGuards } from '@nestjs/common';
-// import { AuthService } from './auth.service';
-// import { LocalAuthGuard } from './local-auth.guard';
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
 
-// @Controller('auth')
-// export class AuthController {
-//   constructor(private authService: AuthService) {}
+  @HttpCode(HttpStatus.OK)
+  @Post('register')
+  register(@Body() registerDto: RegisterDto) {
+    return this.authService.signup(registerDto, registerDto.username, registerDto.password);
+    }
 
-//   @UseGuards(LocalAuthGuard)
-//   @Post('login')
-//   async login(@Request() req) {
-//     return this.authService.login(req.user);
-//   }
-// }
+  @Post('login')
+  login(@Body() LoginDto: LoginDto) {
+    return this.authService.signin(LoginDto.username, LoginDto.password)
+  }
+}

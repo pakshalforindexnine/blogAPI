@@ -1,29 +1,38 @@
-### Create new user
-
-POST http://localhost:3000/users
+### Sign up as new user
+POST http://localhost:3000/auth/register
 content-type: application/json
 
 {
     "firstName": "sansakar",
     "lastName": "12345",
-    "username": "pakshal",
+    "username": "hitm",
     "email": "pakshal12@indexnine.com",
     "password": "1234567",
-    "role": "aactive"
+    "role": "active"
 }
+
+### Sign in as exisiting user
+POST http://localhost:3000/auth/login
+content-type: application/json
+
+{
+    "username": "hitm",
+    "password": "1234567"
+}
+
 
 ### Get all users
 GET http://localhost:3000/users
 
 ### Get a particular user
-GET http://localhost:3000/users/1
+GET http://localhost:3000/users/13
 
 ### Edit a particular user detail
-PATCH http://localhost:3000/users/6
+PATCH http://localhost:3000/users/13
 content-type: application/json
 
 {
-    "firstName": "devin-06",
+    "firstName": "devin-055",
     "lastName": "12345",
     "username": "pakshal",
     "email": "pakshal12@indexnine.com",
@@ -32,4 +41,4 @@ content-type: application/json
 }
 
 ### Delete a particular user
-DELETE http://localhost:3000/users/6
+DELETE http://localhost:3000/users/8

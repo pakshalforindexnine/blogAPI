@@ -1,9 +1,10 @@
+// users/users.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
@@ -13,11 +14,19 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = this.userRepository.create(createUserDto);
+  async create(createUserDto: CreateUserDto, profilePicturePath?: string): Promise<User> {
+    const newUser: Partial<User> = {
+      // Map properties from DTO to entity
+      firstName: createUserDto.firstName,
+      lastName: createUserDto.lastName,
+      username: createUserDto.username,
+      email: createUserDto.email,
+      password: createUserDto.password,
+      role: createUserDto.role,
+      profilePicturePath: profilePicturePath
+    };
     return this.userRepository.save(newUser);
   }
-
   async findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
@@ -29,19 +38,24 @@ export class UsersService {
     return this.userRepository.findOneBy({id});
   }
 
+  async findOneByUsername(username: string): Promise<User> {
+    return this.userRepository.findOne({ where: { username } });
+  }
 
-  async update(id: number, attrs: Partial<User>): Promise<User> {
-    console.log(`Id in services is ${id}`)
-    console.log(attrs)
-    const user = await this.findOne(id);
-    console.log('User -->')
-    console.log(user)
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.userRepository.findOneBy({id});
     if (!user) {
       throw new Error('User not found');
-    }
-    Object.assign(user, attrs);
-    console.log('After updating user -->')
-    console.log(user)
+        }
+        
+    // Map properties from DTO to entity
+    user.firstName = updateUserDto.firstName;
+    user.lastName = updateUserDto.lastName;
+    user.username = updateUserDto.username;
+    user.email = updateUserDto.email;
+    user.password = updateUserDto.password;
+    user.role = updateUserDto.role;
+    
     return this.userRepository.save(user);
   }
 

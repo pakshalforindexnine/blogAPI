@@ -1,23 +1,28 @@
-// // src/auth/auth.module.ts
+// auth/auth.module.ts
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { AuthService } from './auth.service';
+import {AuthController} from './auth.controller';
+import { UsersModule } from '../users/users.module';
+import { jwtConstants } from './constants';
 
-// import { Module } from '@nestjs/common';
-// import { AuthService } from './auth.service';
-// import { AuthController } from './auth.controller';
-// import { JwtModule } from '@nestjs/jwt';
-// import { PassportModule } from '@nestjs/passport';
-// import { JwtStrategy } from './jwt.strategy';
-// import { UsersModule } from '../users/users.module';
+const crypto = require('crypto');
 
-// @Module({
-//   imports: [
-//     PassportModule.register({ defaultStrategy: 'jwt' }),
-//     JwtModule.register({
-//       secret: 'YOUR_SECRET_KEY', // Replace 'YOUR_SECRET_KEY' with your actual secret key
-//       signOptions: { expiresIn: '1d' },
-//     }),
-//     UsersModule,
-//   ],
-//   providers: [AuthService, JwtStrategy],
-//   controllers: [AuthController],
-// })
-// export class AuthModule {}
+ // Import UsersModule here
+
+@Module({
+  imports: [
+    PassportModule,
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '1d' },
+    }),
+    UsersModule, // Import and include UsersModule here
+  ],
+  providers: [AuthService],
+  controllers:[AuthController],
+  exports: [AuthService],
+})
+export class AuthModule {}
